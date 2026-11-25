@@ -1,0 +1,32 @@
+name: Build APK
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, master]
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    container:
+      image: barichello/godot-ci:4.3
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Preparar Godot
+        run: |
+          mkdir -p ~/.local/share/godot/export_templates ~/.config/godot
+          cp -r /root/.local/share/godot/export_templates/* ~/.local/share/godot/export_templates/ || true
+          cp /root/.config/godot/editor_settings-4.tres ~/.config/godot/ || true
+
+      - name: Importar recursos
+        run: godot --headless --editor --quit || true
+
+      - name: Exportar APK
+        run: |
+          mkdir -p build
+          godot --headless --export-debug "Android" build/oeste_saiyajin.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: oeste_saiyajin_apk
+          path: build/oeste_saiyajin.apk
